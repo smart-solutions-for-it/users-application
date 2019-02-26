@@ -49,7 +49,7 @@
                         </td>
                         <td class="align-bottom">
                             <div>
-                                <strong>Adress:</strong> {{user.location.street}}
+                                <strong>Address:</strong> {{user.location.street}}
                             </div>
                             <div>
                                 <strong>City:</strong> {{user.location.city}}
