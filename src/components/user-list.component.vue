@@ -13,7 +13,9 @@
                     <th></th>
                 </tr>
                 </thead>
-                <tbody v-for="(user, index) in filteredUsers.slice(currentPage,currentPage+10)">
+                <tbody v-for="(user, index) in filteredUsers.slice(currentPage,currentPage+10)"
+                       v-bind:key="'user' + index"
+                >
                 <tr :class="{'active' : selectedUser === user, 'table-secondary' : index%2===0}">
                     <td class="align-middle"><img :alt="user.name.first" class="rounded-circle img-thumbnail"
                                                   :src="user.picture.medium"></td>
@@ -109,7 +111,7 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <pie-chart v-if="users.length>0" :data="chartData"></pie-chart>
+                    <pie-chart v-if="users.length" :data="chartData"></pie-chart>
                 </div>
             </div>
         </div>
@@ -145,7 +147,7 @@
         },
         methods: {
             selectUser(user) {
-                this.selectedNow = (this.selectedNow && this.selectedUser === user) ? false : true;
+                this.selectedNow = (!(this.selectedNow && this.selectedUser === user));
                 this.selectedUser = user;
             },
             calculateDate(GMTdate) {
@@ -171,7 +173,7 @@
             },
             filteredUsers() {
                 let filteredUsers = [];
-                if (this.search !== '') {
+                if (this.search) {
                     filteredUsers = this.users.filter(user => user.name.first.match(this.search.trim().toLowerCase()));
                     if (filteredUsers.length <= 10) {
                         this.currentPage = 0;
