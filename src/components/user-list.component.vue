@@ -77,7 +77,7 @@
                 </transition>
                 </tbody>
             </table>
-            <div class="text-danger" v-if="filteredUsers.length===0 && users.lenght!==0">Not founded users. Please
+            <div class="text-danger" v-if="filteredUsers.length===0 && users.lenght">Not founded users. Please
                 change
                 your search query
             </div>
