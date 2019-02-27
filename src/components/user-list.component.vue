@@ -1,6 +1,6 @@
 <template>
-    <div class="container-fluid">
-        <template v-if="showedUsers.users.length>0">
+    <div class="container">
+        <div v-if="users">
             <table class="table table-striped">
                 <thead>
                 <tr>
@@ -13,47 +13,94 @@
                     <th></th>
                 </tr>
                 </thead>
-                <tbody>
-                <template v-for="(user, index) in showedUsers.users">
-                    <tr :key="'user'+index"
-                        :class="{'active' : selectedUser === user, 'table-secondary' : index%2===0}">
-                        <td class="align-middle"><img :alt="user.name.first" class="rounded-circle img-thumbnail"
-                                                      :src="user.picture.medium"></td>
-                        <td class="align-middle">{{user.name.last | titlecase}}</td>
-                        <td class="align-middle">{{user.name.first | titlecase}}</td>
-                        <td class="align-middle">{{user.login.username}}</td>
-                        <td class="align-middle">{{user.phone}}</td>
-                        <td class="align-middle">{{user.location.state | titlecase}}</td>
-                        <td class="align-middle">
-                            <button @click='selectUser(user)' class="btn btn-outline-dark btn-control">
-                                <span>{{ selectedUser === user && selectedNow ? '-' : '+'}}</span>
-                            </button>
+                <tbody v-for="(user, index) in filteredUsers.slice(currentPage,currentPage+10)">
+                <tr :class="{'active' : selectedUser === user, 'table-secondary' : index%2===0}">
+                    <td class="align-middle"><img :alt="user.name.first" class="rounded-circle img-thumbnail"
+                                                  :src="user.picture.medium"></td>
+                    <td class="align-middle">{{user.name.last | titlecase}}</td>
+                    <td class="align-middle">{{user.name.first | titlecase}}</td>
+                    <td class="align-middle">{{user.login.username}}</td>
+                    <td class="align-middle">{{user.phone}}</td>
+                    <td class="align-middle">{{user.location.state | titlecase}}</td>
+                    <td class="align-middle">
+                        <button @click='selectUser(user)' class="btn btn-outline-dark" style="width:80px; height:80px">
+                            <span>{{ selectedUser === user && selectedNow ? '-' : '+'}}</span>
+                        </button>
+                    </td>
+                </tr>
+                <transition name="details">
+                    <tr v-show="selectedUser === user && selectedNow" class="text-secondary text-left small">
+                        <td colspan="3" class="align-bottom">
+                            <h4>{{user.name.first | titlecase}}
+                                <img style="width:40px" src="../assets/male.png" v-if="user.gender==='male'">
+                                <img style="width:20px" src="../assets/female.png" v-if="user.gender==='female'">
+                            </h4>
+                            <div>
+                                <strong>Username:</strong> {{user.login.username}}
+                            </div>
+                            <div>
+                                <strong>Registered:</strong> {{calculateDate(user.registered.date)}}
+                            </div>
+                            <div>
+                                <strong>Email:</strong> {{user.email}}
+                            </div>
+                        </td>
+                        <td class="align-bottom">
+                            <div>
+                                <strong>Adress:</strong> {{user.location.street}}
+                            </div>
+                            <div>
+                                <strong>City:</strong> {{user.location.city}}
+                            </div>
+                            <div>
+                                <strong>Zip Code:</strong> {{user.location.postcode}}
+                            </div>
+                        </td>
+                        <td class="align-bottom">
+                            <div>
+                                <strong>Birthday:</strong> {{calculateDate(user.dob.date)}}
+                            </div>
+                            <div>
+                                <strong>Phone:</strong> {{user.phone}}
+                            </div>
+                            <div>
+                                <strong>Cell:</strong> {{user.cell}}
+                            </div>
+                        </td>
+                        <td colspan="4" class="align-bottom text-center">
+                            <img :alt="user.name.first" class="rounded-circle img-thumbnail"
+                                 :src="user.picture.medium" style="width:50%;">
                         </td>
                     </tr>
-                    <transition name="details" :key="'user'+index">
-                        <user-detail :user="selectedUser" v-show="selectedUser === user && selectedNow"></user-detail>
-                    </transition>
-                </template>
+                </transition>
                 </tbody>
             </table>
-
+            <div class="text-danger" v-if="filteredUsers.length===0 && users.lenght!==0">Not founded users. Please
+                change
+                your search query
+            </div>
             <!--pagination-->
-            <nav v-if="filteredUsers.length>0">
+            <nav>
                 <ul class="pagination pagination-md">
-                    <li v-for="data in filteredUsers" @click="showUsers(data)" :key="data.page"
-                        :class="{'active': showedUsers.page===data.page}" class="page-item"
+                    <li @click="currentPage=0" :class="{'active': currentPage===0}" class="page-item"
                         aria-current="page">
-                        <a class="page-link">{{data.page}}</a></li>
+                              <span class="page-link">1
+        <span class="sr-only">(current)</span>
+        </span>
+                    </li>
+                    <li v-show="filteredUsers.length>10" @click="currentPage=10" class="page-item"
+                        :class="{'active': currentPage===10}"><a
+                            class="page-link">2</a></li>
+                    <li v-show="filteredUsers.length>20" @click="currentPage=20" class="page-item"
+                        :class="{'active': currentPage===20}"><a
+                            class="page-link">3</a></li>
                 </ul>
             </nav>
-        </template>
-        <div class="text-danger" v-if="showedUsers.users.length===0 && users.length>0">Not founded users.
-            Please change your search query
         </div>
         <div class="alert alert-danger" v-if="errorMessage">{{ errorMessage }}</div>
-
-        <!--modal window-->
         <div class="modal fade" id="chart" tabindex="-1" role="dialog" aria-labelledby="title" aria-hidden="true">
+
+            <!--modal window-->
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -71,20 +118,14 @@
 </template>
 
 <script>
-    import PieChart from "./pie-chart.component";
-    import userDetail from "./user-detail.component";
+    import PieChart from "./pie-chartcomponent.js";
 
     export default {
         name: 'user-list',
         components: {
-            'user-detail': userDetail,
             PieChart
         },
-        props: {
-            'search': {
-                type: String
-            }
-        },
+        props: ['search'],
         filters: {
             titlecase(value) {
                 return value[0].toUpperCase() + value.slice(1);
@@ -94,51 +135,25 @@
             return {
                 url: 'https://randomuser.me/api/?results=30',
                 users: [],
-                showedUsers: {
-                    page: null,
-                    users: []
-                },
-                selectedUser: null,
-                selectedNow: false,
-                usersOnPage: 10,
                 errorMessage: '',
+                selectedUser: null,
+                currentPage: 0,
+                selectedNow: false,
                 male: 0,
-                female: 0
+                female: 0,
             }
         },
         methods: {
             selectUser(user) {
-                this.selectedNow = (!(this.selectedNow && this.selectedUser === user));
+                this.selectedNow = (this.selectedNow && this.selectedUser === user) ? false : true;
                 this.selectedUser = user;
             },
-            showUsers(data) {
-                this.showedUsers = {
-                    page: data.page,
-                    users: data.users
-                }
+            calculateDate(GMTdate) {
+                let date = new Date(Date.parse(GMTdate));
+                return this.addZero(date.getDate()) + "/" + (this.addZero(date.getMonth() + 1)) + "/" + date.getFullYear();
             },
-            searchUsers(filteredUsers) {
-                let pages = Math.ceil(filteredUsers.length / this.usersOnPage);
-                let users = Array(pages);
-                for (let i = 0; i < pages; i++) {
-                    let numbers = i * this.usersOnPage;
-                    users[i] = ({
-                        page: i + 1,
-                        users: filteredUsers.slice(numbers, numbers + this.usersOnPage)
-                    });
-                }
-                if (users.length > 0) {
-                    this.showedUsers = {
-                        page: users[0].page,
-                        users: users[0].users
-                    }
-                } else {
-                    this.showedUsers = {
-                        page: null,
-                        users: []
-                    }
-                }
-                return users;
+            addZero(num) {
+                return num < 10 ? `0${num}` : num;
             }
         },
         computed: {
@@ -155,21 +170,31 @@
                 }
             },
             filteredUsers() {
-                let filteredUsers = this.users.filter(user => user.name.first.match(this.search.toLowerCase()));
-                return this.searchUsers(filteredUsers);
+                let filteredUsers = [];
+                if (this.search !== '') {
+                    filteredUsers = this.users.filter(user => user.name.first.match(this.search.trim().toLowerCase()));
+                    if (filteredUsers.length <= 10) {
+                        this.currentPage = 0;
+                    }
+                    if (filteredUsers.length > 10 && filteredUsers.lenght <= 20) {
+                        this.currentPage = 10;
+                    }
+                    if (filteredUsers.length > 20) {
+                        this.currentPage = 20;
+                    }
+                } else {
+                    filteredUsers = this.users;
+                }
+                return filteredUsers;
             }
         },
-        created() {
+        mounted() {
             this.$http.get(this.url).then(response => {
                     this.users = response.body.results;
-                    this.showedUsers = {
-                        page: 1,
-                        users: this.users.slice(0, this.usersOnPage)
-                    },
-                        this.users.forEach(user => user.gender === 'male' ? this.male++ : this.female++);
+                    this.users.forEach(user => user.gender === 'male' ? this.male++ : this.female++);
                 },
                 error => this.errorMessage = error.body.error);
-        },
+        }
     }
 </script>
 
@@ -193,14 +218,4 @@
         transform: translateY(-50px);
         opacity: 0;
     }
-
-    .btn-control {
-        width: 80px;
-        height: 80px;
-    }
-
-    .page-item {
-        cursor: pointer;
-    }
-
 </style>
