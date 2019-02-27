@@ -42,9 +42,9 @@
       </table>
 
       <!--pagination-->
-      <nav v-if="filteredUsers.length">
+      <nav v-if="paginationUsers.length">
         <ul class="pagination pagination-md">
-          <li v-for="data in filteredUsers" @click="showUsers(data)" :key="data.page"
+          <li v-for="data in paginationUsers" @click="showUsers(data)" :key="data.page"
               :class="{'active': showedUsers.page===data.page}" class="page-item"
               aria-current="page">
             <a class="page-link">{{data.page}}</a></li>
@@ -95,9 +95,8 @@
       }
     },
     watch: {
-      search: function (value) {
-        this.filteredUsers = this.users.filter(user => user.name.first.match(value.toLowerCase()));
-        return this.searchUsers();
+      search: function () {
+        this.filterUsers();
       }
     },
     data() {
@@ -105,6 +104,7 @@
         url: 'https://randomuser.me/api/?results=30',
         users: [],
         filteredUsers: [],
+        paginationUsers: [],
         showedUsers: {
           page: null,
           users: []
@@ -118,6 +118,10 @@
       }
     },
     methods: {
+      filterUsers() {
+        this.filteredUsers = this.users.filter(user => user.name.first.match(this.search.toLowerCase()));
+        this.paginationUsers = this.searchUsers();
+      },
       selectUser(user) {
         this.selectedNow = (!(this.selectedNow && this.selectedUser === user));
         this.selectedUser = user;
@@ -166,11 +170,9 @@
           ]
         }
       },
-      // filteredUsers() {
-
-      // }
     },
     created() {
+
       this.$http.get(this.url).then(response => {
             this.users = response.body.results;
             this.showedUsers = {
@@ -178,6 +180,7 @@
               users: this.users.slice(0, this.usersOnPage)
             },
                 this.users.forEach(user => user.gender === 'male' ? this.male++ : this.female++);
+            this.filterUsers();
           },
           error => this.errorMessage = error.body.error);
     },
