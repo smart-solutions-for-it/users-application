@@ -15,12 +15,12 @@
                     <button data-toggle="modal" data-target="#chart" class="btn btn-outline-primary">Show Chart</button>
                 </div>
                 <div class="col-xs-8 col-sm-8 col-md-3 text-left">
-                    <input type="text" class="form-control" placeholder="Search by first name" v-model="search">
+                    <input type="text" class="form-control" placeholder="Search by first name" v-model.trim="search">
                 </div>
             </div>
             <hr>
             <user-list :search="search"></user-list>
-            <footer class="m-auto mt-3 p-3 bg-light text-center" style="height:75px;">
+            <footer class="m-auto mt-3 p-3 bg-light text-center">
                 <div>
                     <span class="text-secondary">---Footer---</span>
                 </div>
@@ -44,7 +44,6 @@
             return {
                 title: 'VueJs project / Test task',
                 search: '',
-
             }
         },
     }
@@ -57,7 +56,12 @@
         color: #2c3e50;
         margin-top: 60px;
     }
+
     h1 img {
         width: 100px;
+    }
+
+    footer {
+        height: 75px;
     }
 </style>
