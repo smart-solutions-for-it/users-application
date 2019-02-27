@@ -128,8 +128,7 @@
           users: data.users
         }
       },
-      searchUsers(filteredUsers) {
-        console.log('filteredUsers', filteredUsers);
+      searchUsers() {
         let pages = Math.ceil(this.filteredUsers.length / this.usersOnPage);
         let users = Array(pages);
         for (let i = 0; i < pages; i++) {
